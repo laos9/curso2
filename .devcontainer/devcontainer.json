@@ -36,5 +36,5 @@
         }
     },
     "postCreateCommand": "bash .devcontainer/setup.sh",
-    "postStartCommand": "bash .devcontainer/publicar-puerto.sh"
+    "postStartCommand": "bash .devcontainer/publicar-puerto.sh; bash .devcontainer/preparar-filament.sh"
 }

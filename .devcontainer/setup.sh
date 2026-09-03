@@ -25,6 +25,10 @@ if ! php -m | grep -qi pcntl; then
     fi
 fi
 
+# intl y zip: las exige Filament (sesión 4). El script es idempotente y también
+# corre en cada arranque desde postStartCommand.
+bash .devcontainer/preparar-filament.sh || true
+
 # OPcache para que el entorno se sienta rápido en desarrollo
 PHP_INI_DIR=$(php -i | grep 'Scan this dir' | awk -F'=> ' '{print $2}' | tr -d ' ')
 if [ -n "$PHP_INI_DIR" ] && [ ! -f "$PHP_INI_DIR/opcache-dev.ini" ]; then
