@@ -15,6 +15,7 @@ class PostForm
         return $schema
             ->components([
                 TextInput::make('titulo')
+                    ->label('Título')
                     ->required()
                     ->maxLength(255),
                 Select::make('categoria_id')
@@ -22,10 +23,16 @@ class PostForm
                     ->relationship('categoria', 'nombre')
                     ->required(),
                 Textarea::make('contenido')
+                    ->label('Contenido')
                     ->required()
                     ->columnSpanFull(),
                 Toggle::make('publicado')
+                    ->label('Publicado')
                     ->default(true),
+                TextInput::make('resumen')
+                    ->label('Resumen')
+                    ->maxLength(160)
+                    ->columnSpanFull(),
             ]);
     }
 }

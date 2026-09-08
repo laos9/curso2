@@ -20,7 +20,29 @@ class PostResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
-    protected static ?string $recordTitleAttribute = 'titulo. --generate';
+    protected static ?string $recordTitleAttribute = 'titulo';
+
+    protected static ?int $navigationSort = 10;
+
+    public static function getNavigationGroup(): string
+    {
+        return 'Contenido';
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return 'Avisos';
+    }
+
+    public static function getModelLabel(): string
+    {
+        return 'Aviso';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Avisos';
+    }
 
     public static function form(Schema $schema): Schema
     {

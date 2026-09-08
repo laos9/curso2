@@ -24,13 +24,19 @@ class PostsTable
         return $table
             ->columns([
     TextColumn::make('titulo')
+        ->label('Título')
         ->searchable()
         ->sortable(),
     TextColumn::make('categoria.nombre')
         ->label('Categoría'),
     IconColumn::make('publicado')
+        ->label('Publicado')
         ->boolean(),
+    TextColumn::make('resumen')
+        ->label('Resumen')
+        ->limit(40),
     TextColumn::make('created_at')
+        ->label('Creado')
         ->dateTime('d/m/Y')
         ->sortable(),
 ])
