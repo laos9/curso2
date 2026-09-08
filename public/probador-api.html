@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Probador de API · Blog de Avisos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --c-blue: #14305c; --c-light: #2563eb; --c-accent: #dc2626; --c-green: #059669;
+            --c-orange: #d97706; --c-gray: #64748b; --c-bg: #f7f9fc; --c-surface: #ffffff;
+            --c-border: #e3e8f0; --c-ink: #16233c;
+            --shadow-sm: 0 1px 3px rgba(15,31,56,.08); --shadow-md: 0 4px 16px rgba(15,31,56,.10);
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: var(--c-bg); color: var(--c-ink); font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; line-height: 1.55; }
+        code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
+
+        header { background: var(--c-blue); color: #fff; padding: 18px 24px; }
+        header h1 { margin: 0; font-size: 1.25em; font-weight: 800; letter-spacing: -0.01em; }
+        header p { margin: 4px 0 0; color: #bfdbfe; font-size: 0.87em; }
+
+        .barra { background: var(--c-surface); border-bottom: 1px solid var(--c-border); padding: 12px 24px; display: flex; gap: 18px; flex-wrap: wrap; align-items: flex-end; }
+        .campo { display: flex; flex-direction: column; gap: 3px; }
+        .campo label { font-size: 0.72em; font-weight: 700; color: var(--c-gray); text-transform: uppercase; letter-spacing: 0.04em; }
+        .campo input { font-family: 'JetBrains Mono', monospace; font-size: 0.84em; padding: 7px 10px; border: 1px solid var(--c-border); border-radius: 9px; outline: none; background: #fff; color: var(--c-ink); }
+        .campo input:focus { border-color: var(--c-light); box-shadow: 0 0 0 3px #dbeafe; }
+        .campo.ancho input { width: 380px; }
+        .campo.medio input { width: 210px; }
+        .campo.chico-in input { width: 140px; }
+
+        .barra-nota { background: #eef4fe; border-bottom: 1px solid #d5e3fb; padding: 7px 24px; font-size: 0.82em; color: #334155; }
+        .barra-nota code { background: #dbeafe; padding: 1px 6px; border-radius: 5px; font-size: 0.92em; color: #1d4ed8; }
+        .barra-nota.mal { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
+        .barra-nota.ok { background: #f0fdf6; border-color: #bbe9d0; color: #047857; }
+
+        .estado-token { font-size: 0.8em; padding: 6px 12px; border-radius: 99px; font-weight: 700; white-space: nowrap; }
+        .estado-token.sin { background: #fef2f2; color: var(--c-accent); border: 1px solid #fecaca; }
+        .estado-token.con { background: #f0fdf6; color: #047857; border: 1px solid #bbe9d0; }
+
+        .layout { display: grid; grid-template-columns: 340px 1fr; gap: 0; min-height: calc(100vh - 132px); }
+        .panel-izq { background: var(--c-surface); border-right: 1px solid var(--c-border); padding: 16px; overflow-y: auto; }
+        .panel-der { padding: 16px 24px 40px; overflow-y: auto; }
+
+        .grupo-tit { font-size: 0.72em; font-weight: 800; color: var(--c-gray); text-transform: uppercase; letter-spacing: 0.05em; margin: 14px 0 7px; }
+        .grupo-tit:first-child { margin-top: 0; }
+
+        .ep { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; background: #fff; border: 1px solid var(--c-border); border-radius: 10px; padding: 8px 10px; margin-bottom: 6px; cursor: pointer; font-family: inherit; font-size: 0.84em; color: var(--c-ink); transition: border-color .15s, box-shadow .15s; }
+        .ep:hover { border-color: var(--c-light); }
+        .ep.activo { border-color: var(--c-light); box-shadow: 0 0 0 3px #dbeafe; }
+        .met { font-family: 'JetBrains Mono', monospace; font-size: 0.78em; font-weight: 700; padding: 2px 7px; border-radius: 6px; min-width: 58px; text-align: center; }
+        .met.GET { background: #dbeafe; color: #1d4ed8; }
+        .met.POST { background: #dcfce7; color: #15803d; }
+        .met.PUT { background: #fef3c7; color: #b45309; }
+        .met.DELETE { background: #fee2e2; color: #b91c1c; }
+        .ep .ruta { font-family: 'JetBrains Mono', monospace; font-size: 0.92em; }
+        .ep .candado { margin-left: auto; color: var(--c-orange); font-size: 0.85em; }
+
+        .caja { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: 14px; box-shadow: var(--shadow-sm); padding: 16px 18px; margin-bottom: 14px; }
+        .caja h2 { margin: 0 0 10px; font-size: 0.95em; font-weight: 800; color: var(--c-blue); }
+
+        .fila-envio { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+        .fila-envio .met { font-size: 0.85em; padding: 6px 10px; }
+        .fila-envio input { flex: 1; font-family: 'JetBrains Mono', monospace; font-size: 0.88em; padding: 8px 11px; border: 1px solid var(--c-border); border-radius: 9px; outline: none; }
+        .fila-envio input:focus { border-color: var(--c-light); box-shadow: 0 0 0 3px #dbeafe; }
+
+        button.enviar { background: var(--c-light); color: #fff; border: none; border-radius: 9px; padding: 9px 20px; font-weight: 700; font-family: inherit; font-size: 0.9em; cursor: pointer; }
+        button.enviar:hover { background: #1d4ed8; }
+        button.enviar:disabled { background: #94a3b8; cursor: wait; }
+        button.chico { background: #eef2f9; color: var(--c-blue); border: 1px solid var(--c-border); border-radius: 8px; padding: 5px 12px; font-weight: 600; font-family: inherit; font-size: 0.8em; cursor: pointer; }
+        button.chico:hover { background: #e2e8f0; }
+
+        textarea { width: 100%; min-height: 120px; font-family: 'JetBrains Mono', monospace; font-size: 0.84em; padding: 10px 12px; border: 1px solid var(--c-border); border-radius: 10px; outline: none; resize: vertical; line-height: 1.5; }
+        textarea:focus { border-color: var(--c-light); box-shadow: 0 0 0 3px #dbeafe; }
+        textarea:disabled { background: #f1f5f9; color: var(--c-gray); }
+
+        .status { display: inline-flex; align-items: center; gap: 8px; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 1.05em; padding: 6px 14px; border-radius: 10px; }
+        .status.s2 { background: #dcfce7; color: #15803d; }
+        .status.s3 { background: #e0e7ff; color: #4338ca; }
+        .status.s4 { background: #fef3c7; color: #b45309; }
+        .status.s5 { background: #fee2e2; color: #b91c1c; }
+        .status.s0 { background: #f1f5f9; color: var(--c-gray); }
+        .tiempo { color: var(--c-gray); font-size: 0.82em; margin-left: 10px; }
+
+        pre.json { background: #0d1428; color: #d7e4ff; border-radius: 12px; padding: 13px 16px; overflow-x: auto; font-size: 0.82em; line-height: 1.5; margin: 0; max-height: 380px; }
+        pre.json .k { color: #7dd3fc; }
+        pre.json .s { color: #86efac; }
+        pre.json .n { color: #fca5a5; }
+        pre.json .b { color: #d8b4fe; }
+
+        pre.curl { background: #f8fafc; border: 1px solid var(--c-border); border-radius: 10px; padding: 11px 14px; overflow-x: auto; font-size: 0.79em; color: #334155; margin: 0; white-space: pre-wrap; word-break: break-all; }
+
+        .pista { background: #eef4fe; border: 1px solid #d5e3fb; border-left: 4px solid var(--c-light); border-radius: 10px; padding: 10px 14px; font-size: 0.84em; margin-top: 10px; }
+        .pista.alerta { background: #fef2f2; border-color: #fecaca; border-left-color: var(--c-accent); }
+        .pista.ok { background: #f0fdf6; border-color: #bbe9d0; border-left-color: var(--c-green); }
+        .pista b { color: var(--c-blue); }
+
+        table.leyenda { width: 100%; border-collapse: collapse; font-size: 0.82em; }
+        table.leyenda td { padding: 5px 8px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+        table.leyenda tr:last-child td { border-bottom: none; }
+        table.leyenda td:first-child { width: 62px; font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+
+        .historial { font-size: 0.8em; }
+        .historial div { padding: 4px 0; border-bottom: 1px solid #f1f5f9; display: flex; gap: 9px; align-items: center; }
+        .historial div:last-child { border-bottom: none; }
+        .historial .h-code { font-family: 'JetBrains Mono', monospace; font-weight: 700; width: 34px; }
+        .historial .h-code.s2 { color: #15803d; } .historial .h-code.s3 { color: #4338ca; }
+        .historial .h-code.s4 { color: #b45309; } .historial .h-code.s5 { color: #b91c1c; }
+        .historial .h-code.s0 { color: var(--c-gray); }
+        .historial .h-ruta { font-family: 'JetBrains Mono', monospace; color: var(--c-gray); }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Probador de API · Blog de Avisos</h1>
+    <p>Cada botón manda una petición HTTP de verdad a tu propio proyecto. Abajo ves el código de estado, la respuesta y el comando equivalente.</p>
+</header>
+
+<div class="barra">
+    <div class="campo ancho">
+        <label for="base">Dirección de tu API</label>
+        <input id="base" spellcheck="false">
+    </div>
+    <div class="campo chico-in">
+        <label for="loginEmail">Correo</label>
+        <input id="loginEmail" value="editor@blog.test" spellcheck="false">
+    </div>
+    <div class="campo chico-in">
+        <label for="loginPass">Contraseña</label>
+        <input id="loginPass" type="password" value="secreto123" spellcheck="false">
+    </div>
+    <button class="enviar" id="btnEntrar" style="padding:8px 16px; font-size:0.85em;">Pedir token</button>
+
+    <div class="campo medio">
+        <label for="token">Token (Bearer)</label>
+        <input id="token" placeholder="todavía no tienes" spellcheck="false">
+    </div>
+    <div id="estadoToken" class="estado-token sin">sin token</div>
+    <button class="chico" id="btnOlvidar">Olvidar token</button>
+</div>
+
+<div class="barra-nota" id="barraNota">Entra con <code>editor@blog.test</code> o con <code>admin@blog.test</code>, los dos con <code>secreto123</code>. El botón manda un <code>POST /api/token</code>, el mismo que está en la lista de abajo.</div>
+
+<div class="layout">
+    <div class="panel-izq">
+        <div class="grupo-tit">Público, sin token</div>
+        <div id="grupoPublico"></div>
+        <div class="grupo-tit">Conseguir un token</div>
+        <div id="grupoToken"></div>
+        <div class="grupo-tit">Con token</div>
+        <div id="grupoPrivado"></div>
+
+        <div class="caja" style="margin-top:16px; padding:12px 14px;">
+            <h2 style="font-size:0.85em;">Historial</h2>
+            <div class="historial" id="historial"><div style="color:#94a3b8;">Todavía no mandas nada.</div></div>
+        </div>
+    </div>
+
+    <div class="panel-der">
+        <div class="caja">
+            <h2>La petición</h2>
+            <div class="fila-envio">
+                <span class="met GET" id="metodoActual">GET</span>
+                <input id="ruta" spellcheck="false">
+                <button class="enviar" id="btnEnviar">Enviar</button>
+            </div>
+            <label style="font-size:0.75em; font-weight:700; color:var(--c-gray); text-transform:uppercase; letter-spacing:0.04em;">Cuerpo (JSON)</label>
+            <textarea id="cuerpo" spellcheck="false"></textarea>
+            <div class="pista" id="pistaEndpoint"></div>
+        </div>
+
+        <div class="caja">
+            <h2>La respuesta</h2>
+            <div style="margin-bottom:11px;">
+                <span class="status s0" id="status">sin enviar</span>
+                <span class="tiempo" id="tiempo"></span>
+            </div>
+            <pre class="json" id="respuesta">Elige una petición de la izquierda y presiona Enviar.</pre>
+            <div class="pista" id="pistaRespuesta" style="display:none;"></div>
+        </div>
+
+        <div class="caja">
+            <h2>El mismo pedido, en la terminal</h2>
+            <pre class="curl" id="curl">curl ...</pre>
+            <button class="chico" id="btnCopiar" style="margin-top:9px;">Copiar comando</button>
+        </div>
+
+        <div class="caja">
+            <h2>Qué significa cada código</h2>
+            <table class="leyenda">
+                <tr><td style="color:#15803d;">200</td><td>Salió bien y te devuelve datos.</td></tr>
+                <tr><td style="color:#15803d;">201</td><td>Se creó el recurso. Es la respuesta correcta de un POST que da de alta.</td></tr>
+                <tr><td style="color:#15803d;">204</td><td>Salió bien y no hay nada que devolver. Es lo que responde un borrado.</td></tr>
+                <tr><td style="color:#4338ca;">302</td><td>Redirección. En una API es señal de que olvidaste el encabezado <code>Accept: application/json</code>.</td></tr>
+                <tr><td style="color:#b45309;">401</td><td>No sé quién eres: falta el token o ya no sirve.</td></tr>
+                <tr><td style="color:#b45309;">403</td><td>Sé quién eres y no te toca. Aquí habla tu Policy.</td></tr>
+                <tr><td style="color:#b45309;">404</td><td>Esa dirección o ese registro no existe.</td></tr>
+                <tr><td style="color:#b45309;">422</td><td>Los datos no pasaron la validación. El cuerpo te dice qué campo falló.</td></tr>
+                <tr><td style="color:#b91c1c;">500</td><td>Tronó tu código. Mira la terminal donde corre el servidor.</td></tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    var ENDPOINTS = [
+        { grupo: 'publico', metodo: 'GET', ruta: '/api/avisos', nombre: '/api/avisos',
+          pista: 'La lista de avisos publicados. No pide token: cualquiera puede leerla, como tu portada. Fíjate en <b>data</b>, <b>links</b> y <b>meta</b>: eso lo agrega la paginación.' },
+        { grupo: 'publico', metodo: 'GET', ruta: '/api/avisos/1', nombre: '/api/avisos/{id}',
+          pista: 'Un aviso suelto. Cambia el número en la dirección. Si pones uno que no existe, la respuesta es <b>404</b>.' },
+        { grupo: 'token', metodo: 'POST', ruta: '/api/token', nombre: '/api/token',
+          cuerpo: { email: 'editor@blog.test', password: 'secreto123', dispositivo: 'probador' },
+          pista: 'Mandas correo y contraseña una sola vez y recibes un token. De aquí en adelante el token te identifica: la API no usa sesión ni cookies. Al recibirlo se guarda solo aquí arriba.' },
+        { grupo: 'privado', metodo: 'GET', ruta: '/api/yo', nombre: '/api/yo', token: true,
+          pista: 'Le pregunta a la API quién cree que eres. Es la prueba más rápida de que tu token sirve.' },
+        { grupo: 'privado', metodo: 'POST', ruta: '/api/avisos', nombre: '/api/avisos', token: true,
+          cuerpo: { titulo: 'Aviso creado desde el probador', contenido: 'Este aviso entró por la API, no por el formulario.', categoria_id: 1 },
+          pista: 'Crear. Si sale bien responde <b>201</b> y el aviso aparece en tu portada, porque es la misma tabla. Quita el título y manda otra vez para ver un <b>422</b>.' },
+        { grupo: 'privado', metodo: 'PUT', ruta: '/api/avisos/1', nombre: '/api/avisos/{id}', token: true,
+          cuerpo: { titulo: 'Título corregido por la API', contenido: 'Contenido corregido.', categoria_id: 1 },
+          pista: 'Editar. Prueba con un aviso tuyo y con uno de otra persona. El de otra persona responde <b>403</b>, y quien lo decide es la misma Policy que escribiste en la sesión 3.' },
+        { grupo: 'privado', metodo: 'DELETE', ruta: '/api/avisos/1', nombre: '/api/avisos/{id}', token: true,
+          pista: 'Borrar. Si es tuyo responde <b>204</b>, sin cuerpo. Si es ajeno, <b>403</b>.' },
+        { grupo: 'privado', metodo: 'POST', ruta: '/api/token/revocar', nombre: '/api/token/revocar', token: true,
+          pista: 'Da de baja el token que estás usando. Después de esto, cualquier petición privada responde <b>401</b> hasta que pidas uno nuevo.' }
+    ];
+
+    var actual = ENDPOINTS[0];
+    var $ = function (id) { return document.getElementById(id); };
+
+    // La dirección arranca en el origen de esta misma página: si abriste el
+    // probador desde tu proyecto, ya apunta a tu API sin que hagas nada.
+    $('base').value = window.location.origin;
+    try { var g = localStorage.getItem('probador-token'); if (g) { $('token').value = g; } } catch (e) {}
+
+    function pintarEndpoints() {
+        var destinos = { publico: $('grupoPublico'), token: $('grupoToken'), privado: $('grupoPrivado') };
+        ENDPOINTS.forEach(function (ep, i) {
+            var b = document.createElement('button');
+            b.className = 'ep' + (ep === actual ? ' activo' : '');
+            b.innerHTML = '<span class="met ' + ep.metodo + '">' + ep.metodo + '</span>' +
+                          '<span class="ruta">' + ep.nombre + '</span>' +
+                          (ep.token ? '<span class="candado">token</span>' : '');
+            b.onclick = function () { elegir(i); };
+            ep._boton = b;
+            destinos[ep.grupo].appendChild(b);
+        });
+    }
+
+    function elegir(i) {
+        actual = ENDPOINTS[i];
+        ENDPOINTS.forEach(function (ep) { ep._boton.classList.toggle('activo', ep === actual); });
+        $('metodoActual').className = 'met ' + actual.metodo;
+        $('metodoActual').textContent = actual.metodo;
+        $('ruta').value = actual.ruta;
+        var tieneCuerpo = actual.metodo === 'POST' || actual.metodo === 'PUT';
+        $('cuerpo').disabled = ! tieneCuerpo;
+        $('cuerpo').value = actual.cuerpo ? JSON.stringify(actual.cuerpo, null, 2) : (tieneCuerpo ? '{}' : 'Este método no manda cuerpo.');
+        $('pistaEndpoint').innerHTML = actual.pista;
+        actualizarCurl();
+    }
+
+    function estadoToken() {
+        var t = $('token').value.trim();
+        $('estadoToken').className = 'estado-token ' + (t ? 'con' : 'sin');
+        $('estadoToken').textContent = t ? 'token activo' : 'sin token';
+    }
+
+    function actualizarCurl() {
+        var base = $('base').value.replace(/\/$/, '');
+        var t = $('token').value.trim();
+        var partes = ['curl -X ' + actual.metodo, "  -H 'Accept: application/json'"];
+        if (actual.metodo === 'POST' || actual.metodo === 'PUT') {
+            partes.push("  -H 'Content-Type: application/json'");
+        }
+        if (actual.token && t) { partes.push("  -H 'Authorization: Bearer " + t.slice(0, 12) + "...'"); }
+        if (! $('cuerpo').disabled && $('cuerpo').value.trim() && $('cuerpo').value.trim() !== '{}') {
+            partes.push("  -d '" + $('cuerpo').value.replace(/\s+/g, ' ').trim() + "'");
+        }
+        partes.push('  ' + base + $('ruta').value);
+        $('curl').textContent = partes.join(' \\\n');
+    }
+
+    function colorear(json) {
+        return json.replace(/&/g, '&amp;').replace(/</g, '&lt;')
+            .replace(/"([^"]+)":/g, '<span class="k">"$1"</span>:')
+            .replace(/: "([^"]*)"/g, ': <span class="s">"$1"</span>')
+            .replace(/: (-?\d+\.?\d*)/g, ': <span class="n">$1</span>')
+            .replace(/: (true|false|null)/g, ': <span class="b">$1</span>');
+    }
+
+    function clase(codigo) {
+        if (! codigo) { return 's0'; }
+        return 's' + String(codigo).charAt(0);
+    }
+
+    function alHistorial(codigo, metodo, ruta) {
+        var h = $('historial');
+        if (h.firstChild && h.firstChild.style.color) { h.innerHTML = ''; }
+        var d = document.createElement('div');
+        d.innerHTML = '<span class="h-code ' + clase(codigo) + '">' + (codigo || '---') + '</span>' +
+                      '<span class="met ' + metodo + '" style="min-width:52px;font-size:0.72em;">' + metodo + '</span>' +
+                      '<span class="h-ruta">' + ruta + '</span>';
+        h.insertBefore(d, h.firstChild);
+    }
+
+    function pistaDeRespuesta(codigo, texto) {
+        var p = $('pistaRespuesta');
+        var msg = '', clase_ = 'pista';
+        if (codigo === 401) {
+            msg = '<b>401.</b> La API no sabe quién eres. Pide un token con <code>POST /api/token</code>, o el que tienes ya fue revocado.';
+            clase_ = 'pista alerta';
+        } else if (codigo === 403) {
+            msg = '<b>403.</b> Sabe quién eres y no te toca. Esta respuesta la decidió tu <code>PostPolicy</code>: el mismo archivo que esconde el botón Editar en tu blog y en el panel.';
+            clase_ = 'pista alerta';
+        } else if (codigo === 422) {
+            msg = '<b>422.</b> No pasó la validación. El cuerpo trae <code>errors</code> con el campo exacto que falló, sin que tú escribieras ese mensaje.';
+            clase_ = 'pista alerta';
+        } else if (codigo === 404) {
+            msg = '<b>404.</b> Esa dirección o ese registro no existe. Revisa el número del aviso.';
+            clase_ = 'pista alerta';
+        } else if (codigo === 302 || (texto && texto.indexOf('<!DOCTYPE') === 0)) {
+            msg = '<b>Te llegó HTML, no JSON.</b> Es la señal de que faltó el encabezado <code>Accept: application/json</code> y Laravel te mandó al login del blog.';
+            clase_ = 'pista alerta';
+        } else if (codigo === 201) {
+            msg = '<b>201.</b> Se creó. Abre tu portada: el aviso está ahí, porque la API y el blog usan la misma tabla.';
+            clase_ = 'pista ok';
+        } else if (codigo === 204) {
+            msg = '<b>204.</b> Se borró y no hay nada que devolver. Por eso la respuesta viene vacía.';
+            clase_ = 'pista ok';
+        } else if (codigo >= 500) {
+            msg = '<b>500.</b> Tronó tu código. La terminal donde corre <code>composer run dev</code> tiene el error completo.';
+            clase_ = 'pista alerta';
+        }
+        p.style.display = msg ? 'block' : 'none';
+        p.className = clase_;
+        p.innerHTML = msg;
+    }
+
+    async function enviar() {
+        var base = $('base').value.replace(/\/$/, '');
+        var ruta = $('ruta').value;
+        var t = $('token').value.trim();
+        var cabeceras = { 'Accept': 'application/json' };
+        var opciones = { method: actual.metodo, headers: cabeceras };
+
+        if (actual.token && t) { cabeceras['Authorization'] = 'Bearer ' + t; }
+        if (! $('cuerpo').disabled) {
+            cabeceras['Content-Type'] = 'application/json';
+            opciones.body = $('cuerpo').value;
+        }
+
+        $('btnEnviar').disabled = true;
+        $('status').className = 'status s0';
+        $('status').textContent = 'enviando';
+        $('tiempo').textContent = '';
+        var t0 = performance.now();
+
+        try {
+            var r = await fetch(base + ruta, opciones);
+            var ms = Math.round(performance.now() - t0);
+            var texto = await r.text();
+
+            $('status').className = 'status ' + clase(r.status);
+            $('status').textContent = r.status + ' ' + r.statusText;
+            $('tiempo').textContent = ms + ' ms · ' + (r.headers.get('content-type') || 'sin tipo');
+
+            var bonito = texto, recortada = false;
+            try {
+                var obj = JSON.parse(texto);
+                // Con APP_DEBUG=true, Laravel adjunta la traza completa del error.
+                // Estorba para leer el mensaje, asi que se guarda y no se pinta.
+                if (obj && obj.trace) { delete obj.trace; delete obj.file; delete obj.line; recortada = true; }
+                bonito = JSON.stringify(obj, null, 2);
+            } catch (e) {}
+            $('respuesta').innerHTML = (texto ? colorear(bonito) : '(respuesta vacía)') +
+                (recortada ? '\n<span style="color:#7c8db5;">(se recortó la traza del error: en producción no viaja)</span>' : '');
+            pistaDeRespuesta(r.status, texto);
+            alHistorial(r.status, actual.metodo, ruta);
+
+            // Si acabas de pedir un token, se guarda solo.
+            try {
+                var j = JSON.parse(texto);
+                if (j && j.token) {
+                    $('token').value = j.token;
+                    try { localStorage.setItem('probador-token', j.token); } catch (e) {}
+                    estadoToken();
+                    actualizarCurl();
+                }
+            } catch (e) {}
+        } catch (e) {
+            $('status').className = 'status s5';
+            $('status').textContent = 'no se pudo conectar';
+            $('respuesta').textContent = String(e) +
+                '\n\nRevisa que "composer run dev" siga corriendo y que la dirección de arriba sea la de tu propio proyecto.' +
+                '\n\nSi apuntaste a la API de otra persona, el navegador la bloquea por seguridad: usa el comando de la terminal.';
+            pistaDeRespuesta(0, '');
+            alHistorial(null, actual.metodo, ruta);
+        } finally {
+            $('btnEnviar').disabled = false;
+        }
+    }
+
+    pintarEndpoints();
+    elegir(0);
+    estadoToken();
+
+    $('btnEnviar').onclick = enviar;
+    $('ruta').oninput = actualizarCurl;
+    $('cuerpo').oninput = actualizarCurl;
+    $('base').oninput = actualizarCurl;
+    $('token').oninput = function () { estadoToken(); actualizarCurl(); try { localStorage.setItem('probador-token', $('token').value.trim()); } catch (e) {} };
+    $('btnOlvidar').onclick = function () {
+        $('token').value = '';
+        try { localStorage.removeItem('probador-token'); } catch (e) {}
+        estadoToken(); actualizarCurl();
+        var nota = $('barraNota');
+        nota.className = 'barra-nota';
+        nota.innerHTML = 'Token olvidado <strong>en esta página</strong>. Ojo: sigue siendo válido en el servidor. Para darlo de baja de verdad, manda <code>POST /api/token/revocar</code>.';
+    };
+    // Entrar y traer el token sin tener que editar el JSON de la peticion.
+    // Es el mismo POST /api/token que esta en la lista, con otro envoltorio.
+    $('btnEntrar').onclick = async function () {
+        var base = $('base').value.replace(/\/$/, '');
+        var nota = $('barraNota');
+        $('btnEntrar').disabled = true;
+        nota.className = 'barra-nota';
+        nota.textContent = 'Pidiendo token...';
+        try {
+            var r = await fetch(base + '/api/token', {
+                method: 'POST',
+                headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: $('loginEmail').value.trim(),
+                    password: $('loginPass').value,
+                    dispositivo: 'probador'
+                })
+            });
+            var j = await r.json();
+            if (r.ok && j.token) {
+                $('token').value = j.token;
+                try { localStorage.setItem('probador-token', j.token); } catch (e) {}
+                estadoToken(); actualizarCurl();
+                nota.className = 'barra-nota ok';
+                nota.innerHTML = 'Token entregado a <strong>' + (j.usuario || '') + '</strong>' +
+                    (j.rol ? ' (rol ' + j.rol + ')' : '') + '. Ya puedes usar las peticiones con candado.';
+            } else if (r.status === 422) {
+                nota.className = 'barra-nota mal';
+                nota.innerHTML = '<strong>422.</strong> ' + ((j.errors && j.errors.email && j.errors.email[0]) || j.message || 'Credenciales incorrectas') +
+                    ' Es la misma validación de siempre, respondida en JSON.';
+            } else if (r.status === 429) {
+                nota.className = 'barra-nota mal';
+                nota.innerHTML = '<strong>429.</strong> Demasiados intentos. Es el <code>throttle</code> de tu ruta haciendo su trabajo: espera un minuto.';
+            } else if (r.status === 404) {
+                nota.className = 'barra-nota mal';
+                nota.innerHTML = '<strong>404.</strong> Todavía no existe <code>POST /api/token</code>. Es el paso 2 de la guía 02.';
+            } else {
+                nota.className = 'barra-nota mal';
+                nota.textContent = 'Respondió ' + r.status + '. Revisa la respuesta completa mandando la petición desde la lista.';
+            }
+        } catch (e) {
+            nota.className = 'barra-nota mal';
+            nota.textContent = 'No se pudo conectar. Revisa que "composer run dev" siga corriendo y que la dirección sea la de tu proyecto.';
+        } finally {
+            $('btnEntrar').disabled = false;
+        }
+    };
+
+    $('btnCopiar').onclick = function () {
+        navigator.clipboard.writeText($('curl').textContent).then(function () {
+            $('btnCopiar').textContent = 'Copiado';
+            setTimeout(function () { $('btnCopiar').textContent = 'Copiar comando'; }, 1400);
+        });
+    };
+})();
+</script>
+
+</body>
+</html>
