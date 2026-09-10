@@ -4,6 +4,7 @@ use App\Models\Post;
 
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Api\PostController as ApiPostController;
 
 Route::get('/', [PostController::class, 'index'])->name('avisos.index');
 Route::middleware('auth')->group(function () {
@@ -17,6 +18,8 @@ Route::middleware('auth')->group(function () {
 Route::get('/login', [AuthController::class, 'mostrar'])->name('login');
 Route::post('/login', [AuthController::class, 'entrar']);
 Route::post('/logout', [AuthController::class, 'salir'])->name('logout');
+Route::get('/avisos', [PostController::class, 'index']);
+Route::get('/avisos/{post}', [PostController::class, 'show']);
 
 
 
