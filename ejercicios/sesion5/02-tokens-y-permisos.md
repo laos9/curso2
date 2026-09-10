@@ -110,7 +110,7 @@ Fíjate en que no devuelve `$request->user()` a secas. Devolverlo publicaría la
 
 ✅ **Checkpoint A:** en el probador, pide un token con `POST /api/token` (viene lleno con `editor@blog.test` y `secreto123`). Al recibirlo, la etiqueta de arriba cambia a **token activo**. Luego manda `GET /api/yo` y confirma que responde **200** con tus datos.
 
-## Paso 4 · El error que todos van a cometer (5 min)
+## Paso 4 · Cuando pides JSON y te llega HTML (5 min)
 
 Prueba `POST /api/avisos` **sin token** desde el probador. Responde **401** y el cuerpo dice `Unauthenticated.`
 
@@ -129,7 +129,7 @@ curl -i -X POST -H 'Accept: application/json' \
   https://<tu-codespace>-8000.app.github.dev/api/avisos -d 'titulo=x'
 ```
 
-Eso sí responde 401. **Regla para el resto de tu vida con APIs de Laravel: si te llega HTML donde esperabas JSON, te faltó ese encabezado.** El probador lo manda siempre, por eso ahí nunca lo ves.
+Eso sí responde 401. **Regla práctica: si te llega HTML donde esperabas JSON, te faltó ese encabezado.** El probador lo manda siempre, por eso ahí nunca lo ves.
 
 ## Paso 5 · Tu Policy ya estaba aquí (5 min)
 
