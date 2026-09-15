@@ -14,9 +14,9 @@ class EnviarAvisoPorCorreo implements ShouldQueue
     public function __construct(public Post $post) {}
 
     public function handle(): void
-{
-    throw new \RuntimeException('El servidor de correo no responde');
-}
-
+    {
+        sleep(3);   // aqui iria el envio real a cada usuario
+        Log::info('Aviso enviado por correo: '.$this->post->titulo);
+    }
 }
 

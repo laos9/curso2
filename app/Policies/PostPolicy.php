@@ -20,6 +20,11 @@ class PostPolicy
     return null;
 }
    
+public function create(User $user): bool
+{
+    return in_array($user->rol, ['admin', 'editor']);
+}
+
 public function update(User $user, Post $post): bool
 {
     return $user->id === $post->user_id;

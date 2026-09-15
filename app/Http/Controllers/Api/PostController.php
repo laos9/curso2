@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\EnviarAvisoPorCorreo;
 use App\Models\Categoria;
 use App\Models\Post;
 use App\Http\Resources\PostResource;
@@ -52,6 +53,8 @@ class PostController extends Controller
     $datos['user_id'] = $request->user()->id;
 
     $post = Post::create($datos);
+
+    EnviarAvisoPorCorreo::dispatch($post);
 
     return (new PostResource($post->load(['categoria', 'user'])))
         ->response()
