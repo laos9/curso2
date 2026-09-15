@@ -1,0 +1,2 @@
+# Lo que escribe el compilador. Se genera de nuevo con: npx tsc -p practica-ts
+salida/

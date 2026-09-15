@@ -1,0 +1,63 @@
+/* Estilos del curso para el frontend de Angular.
+   Ya vienen listos: en la sesion 7 no se escribe CSS, solo se usan estas
+   clases en las plantillas de tus componentes. */
+
+:root {
+  --azul: #14305c;
+  --azul-claro: #dbeafe;
+  --texto: #0f172a;
+  --gris: #64748b;
+  --borde: #e2e8f0;
+  --fondo: #f8fafc;
+  --verde: #15803d;
+  --verde-claro: #dcfce7;
+  --rojo: #b91c1c;
+  --rojo-claro: #fee2e2;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--fondo);
+  color: var(--texto);
+}
+
+/* Encabezado */
+.barra { background: var(--azul); color: #fff; padding: 14px 28px; display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+.marca { font-size: 1.35em; font-weight: 800; }
+.lema { color: #bfdbfe; font-size: 0.9em; }
+
+/* Cuerpo de la pagina */
+.contenido { max-width: 1120px; margin: 0 auto; padding: 22px 28px 40px; }
+.panel { background: #fff; border: 1px solid var(--borde); border-radius: 14px; padding: 16px 18px; margin-bottom: 16px; }
+.panel h2 { margin: 0 0 12px; font-size: 1.05em; }
+.fila { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+/* Tarjetas de avisos */
+.tarjetas { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+.tarjeta { background: #fff; border: 1.5px solid var(--borde); border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
+.tarjeta h3 { margin: 0; font-size: 1.05em; }
+.tarjeta p { margin: 0; color: #334155; line-height: 1.5; }
+.tarjeta small { color: var(--gris); font-size: 0.82em; }
+.chip { align-self: flex-start; font-size: 0.75em; font-weight: 700; padding: 3px 10px; border-radius: 99px; background: var(--azul-claro); color: var(--azul); }
+
+/* Botones */
+button { font: inherit; font-weight: 700; border: 0; border-radius: 10px; padding: 9px 16px; cursor: pointer; background: var(--azul); color: #fff; }
+button.sec { background: #fff; color: var(--azul); border: 1.5px solid var(--azul); }
+button.peligro { align-self: flex-start; background: #fff; color: var(--rojo); border: 1.5px solid #fca5a5; padding: 5px 12px; font-size: 0.85em; }
+button:disabled { opacity: 0.5; cursor: wait; }
+
+/* Formularios */
+.campo { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+label { font-size: 0.85em; font-weight: 700; color: #334155; }
+input, textarea, select { font: inherit; padding: 8px 10px; border: 1px solid var(--borde); border-radius: 8px; background: #fff; }
+textarea { min-height: 80px; resize: vertical; }
+.error { color: var(--rojo); font-size: 0.82em; }
+
+/* Mensajes */
+.nota { font-size: 0.92em; padding: 10px 12px; border-radius: 10px; background: #f1f5f9; margin: 0 0 14px; }
+.nota.ok { background: var(--verde-claro); color: var(--verde); }
+.nota.mal { background: var(--rojo-claro); color: var(--rojo); }
+.vacio { color: var(--gris); text-align: center; padding: 26px; border: 1.5px dashed var(--borde); border-radius: 14px; }
