@@ -92,7 +92,7 @@ En la descripción del PR van tres cosas:
 ## Checklist de la entrega
 
 - [ ] `tests/Feature/Api/` con tus pruebas
-- [ ] `app/Jobs/EnviarAvisoPorCorreo.php` y su `dispatch()` en el `store()` de la API (ejercicio 1)
+- [ ] `implements ShouldQueue` en `EnviarAvisoPorCorreo`, su `dispatch()` en el `store()` de la API, y `destinatarios` y `notificados` en tu `PostResource` (ejercicio 1)
 - [ ] `database/factories/PostFactory.php` y `CategoriaFactory.php`
 - [ ] `use HasFactory;` en `Post` y en `Categoria`
 - [ ] `tests/Unit/PostPolicyTest.php` con las unitarias de tu Policy

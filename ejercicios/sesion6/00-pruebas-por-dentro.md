@@ -187,7 +187,7 @@ SQLSTATE[HY000]: General error: 1 no such table: posts
 
 No es que tu base esté rota. Es que la de la prueba está vacía porque nadie corrió las migraciones.
 
-Tu `phpunit.xml` cambia otra cosa: `QUEUE_CONNECTION` pasa a `sync`, o sea que en las pruebas los trabajos en cola se ejecutan ahí mismo. Si tu `store()` despacha un correo que tarda tres segundos, cada prueba que crea un aviso esperaría esos tres segundos. Para eso está `Queue::fake()`, al principio de la prueba: guarda los trabajos sin ejecutarlos y te deja comprobar después que se despacharon.
+Tu `phpunit.xml` cambia otra cosa: `QUEUE_CONNECTION` pasa a `sync`, o sea que en las pruebas los trabajos en cola se ejecutan ahí mismo. Si tu `store()` despacha un trabajo que manda correos, cada prueba que crea un aviso los mandaría de verdad, con todo lo que tardan. Para eso está `Queue::fake()`, al principio de la prueba: guarda los trabajos sin ejecutarlos y te deja comprobar después que se despacharon.
 
 ---
 

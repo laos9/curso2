@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La cola, en vivo · tu API</title>
+<style>
+    :root {
+        --azul: #14305c; --azul-claro: #dbeafe; --texto: #0f172a; --gris: #64748b; --borde: #e2e8f0; --fondo: #f8fafc;
+        --verde: #15803d; --verde-claro: #dcfce7; --ambar: #b45309; --ambar-claro: #fef3c7; --rojo: #b91c1c; --rojo-claro: #fee2e2;
+        --info: #1d4ed8;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--fondo); color: var(--texto); }
+    header { background: var(--azul); color: #fff; padding: 18px 28px; }
+    header h1 { margin: 0; font-size: 1.45em; }
+    header p { margin: 4px 0 0; color: #bfdbfe; font-size: 0.92em; }
+    main { max-width: 1120px; margin: 0 auto; padding: 20px 28px 40px; }
+    .panel { background: #fff; border: 1px solid var(--borde); border-radius: 14px; padding: 16px 18px; margin-bottom: 16px; }
+    .fila { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    code { font-family: "JetBrains Mono", Consolas, monospace; background: #f1f5f9; padding: 1px 6px; border-radius: 6px; font-size: 0.9em; }
+    input { font: inherit; padding: 8px 10px; border: 1px solid var(--borde); border-radius: 8px; min-width: 190px; }
+    button { font: inherit; font-weight: 700; border: 0; border-radius: 10px; padding: 11px 18px; cursor: pointer; background: var(--azul); color: #fff; }
+    button.sec { background: #fff; color: var(--azul); border: 1.5px solid var(--azul); }
+    button.min { background: none; color: var(--gris); border: 0; padding: 6px 8px; font-weight: 600; }
+    button:disabled { opacity: 0.45; cursor: wait; }
+    .chip { display: inline-block; font-size: 0.8em; font-weight: 700; padding: 4px 11px; border-radius: 99px; }
+    .chip.ok { background: var(--verde-claro); color: var(--verde); }
+    .chip.mal { background: var(--rojo-claro); color: var(--rojo); }
+    .chip.cola { background: var(--ambar-claro); color: var(--ambar); }
+    .chip.enviando { background: var(--azul-claro); color: var(--info); }
+    .reloj { margin-left: auto; text-align: right; }
+    .reloj .rl { display: block; font-size: 0.75em; font-weight: 700; color: var(--gris); text-transform: uppercase; letter-spacing: 0.05em; }
+    .reloj .rv { display: block; font-family: "JetBrains Mono", Consolas, monospace; font-size: 2em; font-weight: 800; color: var(--gris); }
+    .reloj .rv.esperando { color: var(--ambar); }
+    .reloj .rv.rapido { color: var(--verde); }
+    .reloj .rv.lento, .reloj .rv.mal { color: var(--rojo); }
+    .nota { margin-top: 12px; font-size: 0.92em; padding: 10px 12px; border-radius: 10px; background: #f1f5f9; color: var(--texto); }
+    .nota.ok { background: var(--verde-claro); }
+    .nota.mal { background: var(--rojo-claro); }
+    .nota.lento { background: var(--ambar-claro); }
+    .tarjetas { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; margin-bottom: 16px; }
+    .tarjeta { background: #fff; border: 1.5px solid var(--borde); border-radius: 14px; padding: 14px 16px; transition: border-color 0.3s; }
+    .tarjeta.entregado { border-color: #86efac; }
+    .tarjeta.detenido { border-color: #fca5a5; }
+    .t-cab { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .t-tit { font-weight: 700; }
+    .t-id { color: var(--gris); font-family: "JetBrains Mono", Consolas, monospace; font-size: 0.85em; }
+    .barra { height: 14px; background: #f1f5f9; border-radius: 99px; overflow: hidden; margin: 12px 0 8px; }
+    .barra div { height: 100%; width: 0; background: var(--info); border-radius: 99px; transition: width 0.4s; }
+    .tarjeta.entregado .barra div { background: var(--verde); }
+    .tarjeta.detenido .barra div { background: var(--rojo); }
+    .t-num { font-family: "JetBrains Mono", Consolas, monospace; font-size: 0.95em; }
+    .t-tiempos { color: var(--gris); font-size: 0.82em; margin-top: 6px; line-height: 1.5; }
+    .vacio { color: var(--gris); text-align: center; padding: 26px; border: 1.5px dashed var(--borde); border-radius: 14px; grid-column: 1 / -1; }
+    .ayuda h2 { font-size: 1em; margin: 0 0 8px; }
+    .ayuda li { margin: 5px 0; font-size: 0.92em; line-height: 1.5; }
+</style>
+</head>
+<body>
+<header>
+    <h1>La cola, en vivo</h1>
+    <p>Crea avisos con tu API y mira cómo el worker manda los correos, uno por uno.</p>
+</header>
+<main>
+    <section class="panel">
+        <div class="fila">
+            <span class="chip mal" id="estadoToken">Sin token</span>
+            <input id="email" value="editor@blog.test" aria-label="Correo">
+            <input id="password" type="password" value="secreto123" aria-label="Contraseña">
+            <button class="sec" id="pedirToken">Pedir token</button>
+            <span style="color:var(--gris); font-size:0.85em;">Comparte el token con el probador: si ya lo pediste allá, aquí ya está.</span>
+        </div>
+    </section>
+
+    <section class="panel">
+        <div class="fila">
+            <button id="crear">Crear aviso</button>
+            <button class="sec" id="crear3">Crear tres seguidos</button>
+            <button class="min" id="limpiar">Limpiar tarjetas</button>
+            <span style="color:var(--gris); font-size:0.85em;" id="categoria">categoría 1</span>
+            <div class="reloj"><span class="rl">Respuesta de tu API</span><span class="rv" id="relojValor">·</span></div>
+        </div>
+        <div class="nota" id="nota">Cada aviso que crees aparece abajo como tarjeta. La barra se llena conforme salen los correos.</div>
+    </section>
+
+    <section class="tarjetas" id="tarjetas"><div class="vacio">Todavía no creas ningún aviso desde aquí.</div></section>
+
+    <section class="panel ayuda">
+        <h2>Cómo leer lo que ves</h2>
+        <ul>
+            <li><strong>Sin cola</strong>, el botón se queda esperando mientras salen todos los correos, y la tarjeta aparece ya llena. Quien llamó a tu API esperó el envío entero.</li>
+            <li><strong>Con cola</strong>, la respuesta sale al instante y la tarjeta se llena sola, mientras el worker de <code>composer run dev</code> manda los correos.</li>
+            <li><strong>Una tarjeta "en la cola"</strong> que no avanza: revisa que esté corriendo <code>composer run dev</code>, que es donde vive el worker.</li>
+            <li><strong>Una tarjeta "detenido"</strong>: el trabajo falló. Míralo con <code>php artisan queue:failed</code>, arregla la causa y reintenta con <code>php artisan queue:retry all</code>. La tarjeta vuelve a avanzar sola.</li>
+            <li>Esta página vive en tu proyecto, en <code>public/</code>, igual que el probador. Por eso puede hablar con tu API sin permisos especiales.</li>
+        </ul>
+    </section>
+</main>
+
+<script>
+(function () {
+    var CLAVE = 'probador-token';
+    var $ = function (id) { return document.getElementById(id); };
+    var categoria = 1;
+    var contador = 0;
+    var tarjetas = {};
+    var ocupado = false;
+    var relojTimer = null;
+
+    function leerToken() { try { return localStorage.getItem(CLAVE) || ''; } catch (e) { return ''; } }
+    function guardarToken(t) { try { localStorage.setItem(CLAVE, t); } catch (e) {} }
+
+    function nota(texto, tipo) { var n = $('nota'); n.textContent = texto; n.className = 'nota' + (tipo ? ' ' + tipo : ''); }
+
+    function pintarToken() {
+        var t = leerToken();
+        var c = $('estadoToken');
+        c.textContent = t ? 'Token activo' : 'Sin token';
+        c.className = 'chip ' + (t ? 'ok' : 'mal');
+    }
+
+    async function pedirToken() {
+        try {
+            var r = await fetch('/api/token', {
+                method: 'POST',
+                headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: $('email').value.trim(), password: $('password').value, dispositivo: 'cola-en-vivo' })
+            });
+            var j = {}; try { j = await r.json(); } catch (e) {}
+            if (r.status === 200 && j.token) { guardarToken(j.token); pintarToken(); nota('Token listo. Ya puedes crear avisos.', 'ok'); }
+            else if (r.status === 422) { nota('Esas credenciales no coinciden con ningún usuario.', 'mal'); }
+            else if (r.status === 404) { nota('Tu API no tiene /api/token. Es de la sesión 5: corre bash .devcontainer/nivelar-api.sh', 'mal'); }
+            else if (r.status === 429) { nota('Demasiados intentos seguidos. Espera un minuto.', 'mal'); }
+            else { nota('La API respondió ' + r.status + ' al pedir el token.', 'mal'); }
+        } catch (e) { nota('No hubo respuesta. ¿Está corriendo composer run dev?', 'mal'); }
+    }
+
+    async function detectarCategoria() {
+        try {
+            var r = await fetch('/api/avisos', { headers: { 'Accept': 'application/json' } });
+            var j = await r.json();
+            var conCat = (j.data || []).filter(function (a) { return a.categoria && a.categoria.id; });
+            if (conCat.length) { categoria = conCat[0].categoria.id; }
+        } catch (e) {}
+        $('categoria').textContent = 'se crean en la categoría ' + categoria;
+    }
+
+    function relojInicia() {
+        var t0 = performance.now();
+        var el = $('relojValor');
+        el.className = 'rv esperando';
+        clearInterval(relojTimer);
+        relojTimer = setInterval(function () { el.textContent = ((performance.now() - t0) / 1000).toFixed(1) + ' s'; }, 100);
+        return t0;
+    }
+
+    function relojTermina(t0, codigo) {
+        clearInterval(relojTimer);
+        var s = (performance.now() - t0) / 1000;
+        var el = $('relojValor');
+        el.textContent = (codigo ? codigo + ' en ' : '') + s.toFixed(2) + ' s';
+        el.className = 'rv ' + (!codigo || codigo >= 400 ? 'mal' : (s < 1 ? 'rapido' : 'lento'));
+        return s;
+    }
+
+    function estado(t) {
+        if (t.terminado) { return ['entregado', 'entregado', 'ok']; }
+        if (Date.now() - t.ultimoCambio > 12000) { return ['detenido', 'detenido', 'mal']; }
+        if (t.destinatarios > 0) { return ['enviando', 'enviando', 'enviando']; }
+        return ['en la cola', '', 'cola'];
+    }
+
+    function pintarTarjeta(id) {
+        var t = tarjetas[id];
+        var e = estado(t);
+        t.el.className = 'tarjeta ' + e[1];
+        var pct = t.destinatarios ? Math.min(100, Math.round(100 * t.notificados / t.destinatarios)) : 0;
+        t.el.querySelector('.barra div').style.width = pct + '%';
+        t.el.querySelector('.chip').textContent = e[0];
+        t.el.querySelector('.chip').className = 'chip ' + e[2];
+        t.el.querySelector('.t-num').textContent = !t.campos
+            ? 'Tu PostResource no expone destinatarios ni notificados'
+            : (t.destinatarios ? t.notificados + ' de ' + t.destinatarios + ' notificados' : 'esperando a que el worker lo tome');
+        var tiempos = 'Tu API respondió en ' + t.respondio.toFixed(2) + ' s.';
+        if (t.terminado) { tiempos += ' El último correo salió ' + ((t.fin - t.inicio) / 1000).toFixed(1) + ' s después de crear el aviso.'; }
+        else if (e[0] === 'detenido') { tiempos += ' Sin avance desde hace más de 12 s: revisa php artisan queue:failed.'; }
+        t.el.querySelector('.t-tiempos').textContent = tiempos;
+    }
+
+    function agregarTarjeta(d, inicio, respondio) {
+        var vacio = document.querySelector('.vacio');
+        if (vacio) { vacio.remove(); }
+        var el = document.createElement('div');
+        el.className = 'tarjeta';
+        el.innerHTML = '<div class="t-cab"><span class="t-tit"></span><span class="chip cola">en la cola</span></div>'
+            + '<div class="t-id"></div><div class="barra"><div></div></div><div class="t-num"></div><div class="t-tiempos"></div>';
+        el.querySelector('.t-tit').textContent = d.titulo;
+        el.querySelector('.t-id').textContent = 'GET /api/avisos/' + d.id;
+        $('tarjetas').prepend(el);
+        var campos = (d.notificados !== undefined && d.destinatarios !== undefined);
+        tarjetas[d.id] = {
+            el: el, inicio: inicio, respondio: respondio, campos: campos,
+            notificados: d.notificados || 0, destinatarios: d.destinatarios || 0,
+            ultimoCambio: Date.now(), terminado: false, fin: null
+        };
+        revisarFin(d.id);
+        pintarTarjeta(d.id);
+    }
+
+    function revisarFin(id) {
+        var t = tarjetas[id];
+        if (!t.terminado && t.destinatarios > 0 && t.notificados >= t.destinatarios) { t.terminado = true; t.fin = Date.now(); }
+    }
+
+    async function crear() {
+        if (!leerToken()) { nota('Primero pide un token.', 'mal'); return false; }
+        contador++;
+        var inicio = Date.now();
+        var t0 = relojInicia();
+        var r, j = {};
+        try {
+            r = await fetch('/api/avisos', {
+                method: 'POST',
+                headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + leerToken() },
+                body: JSON.stringify({ titulo: 'Aviso de prueba ' + contador, contenido: 'Creado desde la cola en vivo.', categoria_id: categoria })
+            });
+            try { j = await r.json(); } catch (e) {}
+        } catch (e) { relojTermina(t0, 0); nota('No hubo respuesta. ¿Está corriendo composer run dev?', 'mal'); return false; }
+        var s = relojTermina(t0, r.status);
+        if (r.status === 201 && j.data) {
+            agregarTarjeta(j.data, inicio, s);
+            if (j.data.notificados === undefined) { nota('El aviso se creó, pero tu PostResource no expone destinatarios ni notificados. Agrégalos (paso 2 de la guía) y la barra va a moverse.', 'mal'); }
+            else if (s >= 1) { nota('Tardó ' + s.toFixed(1) + ' s: los correos salieron dentro de la petición, y quien llamó a tu API los esperó todos. Así se ve sin cola.', 'lento'); }
+            else { nota('Respondió en ' + s.toFixed(2) + ' s: el correo quedó en la cola y lo manda el worker. Mira cómo se llena la tarjeta.', 'ok'); }
+            return true;
+        }
+        if (r.status === 401) { nota('Tu token ya no sirve. Pide uno nuevo.', 'mal'); }
+        else if (r.status === 403) { nota('Tu usuario no puede crear avisos. Usa uno con rol editor o admin.', 'mal'); }
+        else if (r.status === 422) { nota('La API rechazó los datos: ' + JSON.stringify(j.errors || j), 'mal'); }
+        else { nota('La API respondió ' + r.status + (j.message ? ': ' + j.message : '') + '. Revisa la terminal de composer run dev.', 'mal'); }
+        return false;
+    }
+
+    async function conBotones(fn) {
+        if (ocupado) { return; }
+        ocupado = true;
+        $('crear').disabled = true; $('crear3').disabled = true;
+        try { await fn(); } finally { ocupado = false; $('crear').disabled = false; $('crear3').disabled = false; }
+    }
+
+    async function vigilar() {
+        var ids = Object.keys(tarjetas).filter(function (id) { return tarjetas[id].campos && !tarjetas[id].terminado; });
+        for (var i = 0; i < ids.length; i++) {
+            var id = ids[i], t = tarjetas[id];
+            try {
+                var r = await fetch('/api/avisos/' + id, { headers: { 'Accept': 'application/json' } });
+                if (r.status === 200) {
+                    var d = (await r.json()).data || {};
+                    var n = d.notificados || 0, dest = d.destinatarios || 0;
+                    if (n !== t.notificados || dest !== t.destinatarios) { t.ultimoCambio = Date.now(); }
+                    t.notificados = n; t.destinatarios = dest;
+                    revisarFin(id);
+                }
+            } catch (e) {}
+            pintarTarjeta(id);
+        }
+        setTimeout(vigilar, 700);
+    }
+
+    $('pedirToken').onclick = pedirToken;
+    $('crear').onclick = function () { conBotones(crear); };
+    $('crear3').onclick = function () { conBotones(async function () { for (var k = 0; k < 3; k++) { if (!(await crear())) { break; } } }); };
+    $('limpiar').onclick = function () { tarjetas = {}; $('tarjetas').innerHTML = '<div class="vacio">Todavía no creas ningún aviso desde aquí.</div>'; };
+
+    pintarToken();
+    detectarCategoria();
+    vigilar();
+})();
+</script>
+</body>
+</html>

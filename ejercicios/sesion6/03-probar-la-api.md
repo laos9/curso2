@@ -35,7 +35,7 @@ beforeEach(function () {
 
 `beforeEach` corre antes de **cada** prueba, y como la base se limpia entre pruebas, esa categoría y ese usuario se vuelven a crear cada vez. Lo que guardas en `$this->` queda disponible dentro de las pruebas.
 
-**`Queue::fake()` es por el ejercicio 1.** Tu `store()` ahora despacha el correo a la cola, y en las pruebas las colas corren en modo `sync` (lo dice tu `phpunit.xml`): sin esa línea, cada aviso que crea una prueba ejecutaría el trabajo de verdad, con sus tres segundos. `Queue::fake()` guarda los trabajos en vez de ejecutarlos, y te deja preguntar después si se despacharon.
+**`Queue::fake()` es por el ejercicio 1.** Tu `store()` ahora despacha el correo a la cola, y en las pruebas las colas corren en modo `sync` (lo dice tu `phpunit.xml`): sin esa línea, cada aviso que crea una prueba ejecutaría el trabajo de verdad, con su espera por cada correo. `Queue::fake()` guarda los trabajos en vez de ejecutarlos, y te deja preguntar después si se despacharon.
 
 ---
 
@@ -361,4 +361,4 @@ Pasa, y la razón es fina: `validate()` devuelve **solo las claves que validaste
 | El 201 pasa pero `assertDatabaseHas` falla en `user_id` | A tu `Post` le falta `'user_id'` en el `$fillable` |
 | `Undefined property: $this->categoria` | El `beforeEach` está fuera del archivo o dentro de un `describe` que no corresponde |
 | `Failed asserting that null is true.` en la prueba de la Policy | Armaste el usuario con `new User(['rol' => ...])` y `rol` no está en el `$fillable`. Usa `forceFill` |
-| Las pruebas que crean avisos tardan tres segundos cada una | Falta `Queue::fake()` en el `beforeEach`: el correo se está mandando de verdad en cada prueba |
+| Las pruebas que crean avisos tardan segundos cada una | Falta `Queue::fake()` en el `beforeEach`: los correos se están mandando de verdad en cada prueba |
