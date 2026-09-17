@@ -71,6 +71,18 @@ Las fechas son las de publicación en el registro de npm.
 
 Y una cuarta, que no es del lenguaje sino de las herramientas: como el compilador conoce los tipos, el editor puede autocompletar, avisar mientras escribes y renombrar un campo en todo el proyecto. VS Code, que también es de Microsoft, usa el motor de TypeScript incluso para entender JavaScript simple.
 
+**Cinco errores comunes que JavaScript acepta sin avisar.** Con `interface Aviso { id: number; titulo: string; publicado: boolean; }` y `const idDeLaUrl = '7';`, las cinco líneas de la izquierda corren en Node sin un solo error. Las cinco las marca el TypeScript 5.1.6 de tu proyecto antes de correr:
+
+| Lo que escribes | Lo que hace JavaScript | Lo que dice TypeScript |
+|---|---|---|
+| `console.log(aviso.titluo);` | Imprime `undefined`: el título sale vacío | `error TS2551: Property 'titluo' does not exist on type 'Aviso'. Did you mean 'titulo'?` |
+| `aviso.publicado = 'no';` | `'no'` cuenta como verdadero: el aviso sale como publicado | `error TS2322: Type 'string' is not assignable to type 'boolean'.` |
+| `avisos.find(a => a.id === idDeLaUrl)` | Da `undefined`: `7` y `'7'` no son iguales, así que nunca lo encuentra | `error TS2367: This comparison appears to be unintentional because the types 'number' and 'string' have no overlap.` |
+| `crearAviso('Simulacro')`, si la función pide título y contenido | Arma el aviso con `contenido: undefined` | `error TS2554: Expected 2 arguments, but got 1.` |
+| `const respuesta = fetch(url);` y después `respuesta.ok` | Da `undefined`: sin `await`, `respuesta` todavía es una promesa | `error TS2339: Property 'ok' does not exist on type 'Promise<Response>'.` |
+
+El tercero es el más difícil de encontrar a mano: lo que llega de una URL siempre es texto, y en la pantalla solo ves que el aviso "no aparece".
+
 ### A.3 Tres diferencias con PHP que conviene saber
 
 **1. Importa la forma, no el nombre.** En PHP un objeto es de un tipo porque su clase lo declara (`class X implements Y`). En TypeScript, cualquier objeto que tenga los campos de una interfaz la cumple, sin declararlo. Por eso el JSON de tu API "es" un `Aviso` en cuanto tiene `id`, `titulo` y `creado`. A esto se le llama tipado estructural.
