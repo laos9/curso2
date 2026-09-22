@@ -1,0 +1,21 @@
+<section *ngIf="sesion.sesion$ | async as s; else formulario" class="panel">
+  <div class="fila">
+    <span>Entraste como <strong>{{ s.usuario }}</strong></span>
+    <span class="chip">{{ s.rol }}</span>
+    <button class="sec" (click)="preguntarQuienSoy()">¿Quién soy?</button>
+    <button class="sec" (click)="salir()">Salir</button>
+  </div>
+  <p *ngIf="quienSoy" class="nota" [class.ok]="quienSoyOk" [class.mal]="!quienSoyOk" style="margin: 12px 0 0;">{{ quienSoy }}</p>
+</section>
+
+<ng-template #formulario>
+  <form class="panel" (ngSubmit)="entrar()">
+    <h2>Entrar</h2>
+    <div class="fila">
+      <input name="email" [(ngModel)]="email" placeholder="correo">
+      <input name="password" type="password" [(ngModel)]="password" placeholder="contraseña">
+      <button type="submit" [disabled]="enviando">Entrar</button>
+    </div>
+    <p *ngIf="error" class="error">{{ error }}</p>
+  </form>
+</ng-template>

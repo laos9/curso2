@@ -20,7 +20,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
 
-class EnviarAvisoPorCorreo
+class EnviarAvisoPorCorreo implements ShouldQueue
 {
     use Queueable;
 
