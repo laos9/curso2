@@ -4,6 +4,8 @@
 </header>
 
 <main class="contenido">
-  <!-- Aqui van tus componentes. Por ejemplo: <app-avisos-lista></app-avisos-lista> -->
-  <p class="vacio">Tu aplicación de Angular ya arranca. Los componentes los creas en la sesión.</p>
+  <app-entrar></app-entrar>
+  <app-aviso-nuevo (creado)="lista.cargar()"></app-aviso-nuevo>
+  <app-avisos-lista #lista></app-avisos-lista>
 </main>
+

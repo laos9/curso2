@@ -1,0 +1,31 @@
+<form *ngIf="sesion.sesion$ | async" class="panel" [formGroup]="form" (ngSubmit)="guardar()">
+  <h2>Nuevo aviso</h2>
+
+  <div class="campo">
+    <label for="titulo">Título</label>
+    <input id="titulo" formControlName="titulo">
+    <span *ngIf="form.controls.titulo.touched && form.controls.titulo.hasError('required')" class="error">Escribe un título.</span>
+    <span *ngIf="form.controls.titulo.hasError('maxlength')" class="error">Máximo 120 caracteres.</span>
+    <span *ngIf="errores['titulo']" class="error">{{ errores['titulo'][0] }}</span>
+  </div>
+
+  <div class="campo">
+    <label for="contenido">Contenido</label>
+    <textarea id="contenido" formControlName="contenido"></textarea>
+    <span *ngIf="form.controls.contenido.touched && form.controls.contenido.hasError('required')" class="error">Escribe el contenido.</span>
+    <span *ngIf="errores['contenido']" class="error">{{ errores['contenido'][0] }}</span>
+  </div>
+
+  <div class="campo">
+    <label for="categoria">Categoría</label>
+    <select id="categoria" formControlName="categoria_id">
+      <option [ngValue]="null">Elige una categoría</option>
+      <option *ngFor="let c of categorias" [ngValue]="c.id">{{ c.nombre }}</option>
+    </select>
+    <span *ngIf="form.controls.categoria_id.touched && form.controls.categoria_id.hasError('required')" class="error">Elige una categoría.</span>
+    <span *ngIf="errores['categoria_id']" class="error">{{ errores['categoria_id'][0] }}</span>
+  </div>
+
+  <button type="submit" [disabled]="enviando">Crear aviso</button>
+  <p *ngIf="mensaje" class="nota" style="margin: 12px 0 0;">{{ mensaje }}</p>
+</form>
