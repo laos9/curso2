@@ -1,0 +1,43 @@
+# Esqueleto. En la guia 02 lo completas hasta tener los cuatro servicios.
+#
+# Ya esta el primero, la base de datos, para que veas la forma. Te faltan tres:
+#   2. laravel   construye con docker/laravel.Dockerfile, publica el 8081, habla con db
+#   3. django    construye con docker/django.Dockerfile, publica el 8082, habla con db
+#   4. angular   construye con docker/angular.Dockerfile, publica el 8080
+#
+# Reglas que se repiten en los tres:
+#   - ninguno lleva la contrasena escrita aqui: sale de tu .env
+#   - todos van en la misma red `interna`, si no, no se ven entre ellos
+#   - el que necesita la base espera a que este sana con depends_on + condition
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${BD_LARAVEL:?falta BD_LARAVEL en tu .env}
+      POSTGRES_USER: ${BD_USUARIO:?falta BD_USUARIO en tu .env}
+      POSTGRES_PASSWORD: ${BD_CLAVE:?falta BD_CLAVE en tu .env}
+    volumes:
+      # 1. Donde viven los datos. Sobrevive a `down`, muere con `down -v`
+      - datos-db:/var/lib/postgresql/data
+      # 2. Crea la segunda base la primera vez que nace el volumen
+      - ./docker/postgres/crear-bases.sql:/docker-entrypoint-initdb.d/crear-bases.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [interna]
+
+  # 2. laravel: aqui va el tuyo
+
+  # 3. django: aqui va el tuyo
+
+  # 4. angular: aqui va el tuyo
+
+networks:
+  interna:
+
+volumes:
+  datos-db:
+  almacen-laravel:

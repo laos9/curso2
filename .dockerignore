@@ -1,0 +1,29 @@
+# Lo que NO viaja a la imagen. Cada linea aqui es una imagen mas chica
+# y un build mas rapido, y evita mandar cosas que no deben salir de tu maquina.
+
+# Dependencias: se instalan dentro de la imagen, no se copian
+**/node_modules
+**/vendor
+
+# Historia de Git: la imagen no la necesita
+**/.git
+**/.gitignore
+
+# Secretos: NUNCA entran a una imagen
+**/.env
+**/.env.*
+!**/.env.example
+
+# Resultados de build anteriores
+**/dist
+**/public/build
+
+# Basura de ejecucion
+**/storage/logs/*
+**/storage/framework/cache/*
+**/storage/framework/sessions/*
+**/storage/framework/views/*
+**/bootstrap/cache/*
+**/__pycache__
+**/*.pyc
+**/*.sqlite3
