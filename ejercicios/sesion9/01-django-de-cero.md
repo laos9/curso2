@@ -153,7 +153,30 @@ Crea un usuario administrador:
 .venv/bin/python manage.py createsuperuser
 ```
 
-Te pide usuario, correo (puedes dejarlo vacío) y contraseña. Usa algo que recuerdes: `admin` y `admin12345`.
+Te pide **usuario**, correo y contraseña. Usa **los mismos usuarios de práctica que ya tienes en Laravel**, para no andar recordando otros distintos:
+
+| | Usuario | Contraseña |
+|---|---|---|
+| Superusuario | `admin@blog.test` | `secreto123` |
+
+Sí, el usuario lleva el correo completo. **Django autentica por `username`, no por correo**, así que poniendo el correo como nombre de usuario acabas escribiendo el mismo dato que en tu Laravel. El campo de correo puedes repetirlo o dejarlo vacío.
+
+**Ahora crea el segundo usuario, y este sin privilegios:**
+
+```bash
+.venv/bin/python manage.py shell -c "from django.contrib.auth.models import User; u = User.objects.create_user('editor@blog.test', password='secreto123'); print('creado', u.username, '| is_staff =', u.is_staff)"
+```
+
+Debe imprimir `creado editor@blog.test | is_staff = False`.
+
+Son los mismos dos papeles de tu seeder de Laravel:
+
+| Comando | Qué crea | `is_staff` | Su equivalente allá |
+|---|---|---|---|
+| `createsuperuser` | entra al panel y manda sobre todo | `True` | `admin@blog.test`, rol `admin` |
+| `User.objects.create_user(...)` | un usuario normal | `False` | `editor@blog.test`, rol `editor` |
+
+**Esa diferencia la vas a necesitar en la guía 02**: la Policy deja pasar a quien tenga `is_staff`, así que con un solo superusuario nunca verías un 403. Hacen falta los dos.
 
 Levanta el servidor y entra a `/admin/`:
 
@@ -163,7 +186,7 @@ Levanta el servidor y entra a `/admin/`:
 
 **Lo que acabas de conseguir con tres líneas** es un panel de administración completo: listar, crear, editar y borrar avisos y categorías, con sus relaciones resueltas. En Laravel eso es Filament, que instalaste en la sesión 4. En Django viene incluido.
 
-Crea desde el panel una categoría y dos avisos. Los vas a necesitar en la guía 02.
+Crea desde el panel una categoría y dos avisos, **los dos con `autor` = `admin@blog.test`**. Los vas a necesitar en la guía 02: que sean del admin es lo que después te deja ver el 403 desde la cuenta del editor.
 
 ## Paso 5 · El shell, que es tu Tinker
 

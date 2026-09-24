@@ -177,7 +177,7 @@ Pide un token:
 ```bash
 curl -s -X POST http://localhost:8001/api/token \
   -H 'Content-Type: application/json' \
-  -d '{"username":"admin","password":"admin12345"}'
+  -d '{"username":"admin@blog.test","password":"secreto123"}'
 ```
 
 Sale `{"token":"..."}`. Guárdalo:
@@ -186,6 +186,21 @@ Sale `{"token":"..."}`. Guárdalo:
 TOKEN=pega_aqui_tu_token
 curl -s http://localhost:8001/api/yo -H "Authorization: Token $TOKEN"
 ```
+
+**Pide también el token del otro usuario**, el `editor@blog.test` de la guía 01. Lo necesitas para ver el 403:
+
+```bash
+curl -s -X POST http://localhost:8001/api/token \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"editor@blog.test","password":"secreto123"}'
+```
+
+```bash
+TOKEN_EDITOR=pega_aqui_el_otro_token
+curl -s http://localhost:8001/api/yo -H "Authorization: Token $TOKEN_EDITOR"
+```
+
+Fíjate en el `rol` que devuelve cada uno: `admin` para el primero y `autor` para el segundo. Lo decide el `is_staff` de la guía 01, igual que el campo `rol` de tu seeder decide quién puede qué en Laravel.
 
 **Ojo con la palabra.** En Sanctum era `Authorization: Bearer`. En DRF es `Authorization: Token`. Si escribes `Bearer` te responde 401 y el mensaje no lo dice claro. El sistema real usa esta misma forma.
 
@@ -238,23 +253,29 @@ curl -i -s -X POST http://localhost:8001/api/avisos/ \
   -H 'Content-Type: application/json' \
   -d '{"titulo":"x","contenido":"y","categoria_id":1}' | head -1
 
-# 3. crear con token
+# 3. crear con el token del EDITOR (el aviso queda a su nombre)
 curl -i -s -X POST http://localhost:8001/api/avisos/ \
-  -H "Authorization: Token $TOKEN" -H 'Content-Type: application/json' \
+  -H "Authorization: Token $TOKEN_EDITOR" -H 'Content-Type: application/json' \
   -d '{"titulo":"Mi primer aviso en Django","contenido":"hola","categoria_id":1}' | head -1
 
 # 4. crear con el cuerpo vacio
 curl -s -X POST http://localhost:8001/api/avisos/ \
-  -H "Authorization: Token $TOKEN" -H 'Content-Type: application/json' -d '{}'
+  -H "Authorization: Token $TOKEN_EDITOR" -H 'Content-Type: application/json' -d '{}'
 
-# 5. borrar un aviso ajeno
+# 5. el EDITOR borra un aviso del admin, ajeno para el
+curl -i -s -X DELETE http://localhost:8001/api/avisos/2/ \
+  -H "Authorization: Token $TOKEN_EDITOR" | head -1
+
+# 6. el EDITOR borra el aviso que acaba de crear en el caso 3
+curl -i -s -X DELETE http://localhost:8001/api/avisos/3/ \
+  -H "Authorization: Token $TOKEN_EDITOR" | head -1
+
+# 7. el ADMIN borra ese mismo aviso ajeno del caso 5
 curl -i -s -X DELETE http://localhost:8001/api/avisos/2/ \
   -H "Authorization: Token $TOKEN" | head -1
-
-# 6. borrar el tuyo
-curl -i -s -X DELETE http://localhost:8001/api/avisos/1/ \
-  -H "Authorization: Token $TOKEN" | head -1
 ```
+
+**Los casos 5 y 7 son la misma petición con distinto token**, y ahí está la lección: lo que cambia no es lo que pides, es **quién lo pide**. Si los hicieras todos con el superusuario nunca verías el 403, porque su `is_staff` deja pasar todo.
 
 La tabla que vas a llenar, y la sorpresa está en la fila 4:
 
@@ -264,10 +285,11 @@ La tabla que vas a llenar, y la sorpresa está en la fila 4:
 | Crear sin token | 401 | 401 | la misma |
 | Crear con token | 201 | 201 | el ViewSet |
 | Cuerpo vacío | **422** | **400** | el serializer |
-| Borrar ajeno | 403 | 403 | tu permission class |
-| Borrar el tuyo | 204 | 204 | el ViewSet |
+| Borrar ajeno, como editor | 403 | 403 | tu permission class |
+| Borrar el tuyo, como editor | 204 | 204 | el ViewSet |
+| Borrar ese mismo ajeno, como admin | 204 | 204 | el `is_staff` de tu permission class |
 
-**Cinco de seis son idénticos.** El que cambia es la validación: Laravel responde 422 y DRF responde 400. Los dos devuelven los errores por campo, pero el código es distinto. Si un frontend espera 422 y le llega 400, el formulario no enseña los errores. Eso, en un sistema con Angular delante, es un bug de verdad.
+**Seis de siete son idénticos.** El que cambia es la validación: Laravel responde 422 y DRF responde 400. Los dos devuelven los errores por campo, pero el código es distinto. Si un frontend espera 422 y le llega 400, el formulario no enseña los errores. Eso, en un sistema con Angular delante, es un bug de verdad.
 
 ---
 
@@ -278,4 +300,5 @@ La tabla que vas a llenar, y la sorpresa está en la fila 4:
 - El token va como `Authorization: Token`, no `Bearer`.
 - Las rutas del router llevan **barra final**.
 - La permission class es tu Policy, pero DRF la consulta sola.
+- El **403 solo aparece si hay dos usuarios**: con un superusuario, `is_staff` deja pasar todo.
 - La validación responde **400**, no 422.

@@ -1,9 +1,18 @@
 from django.contrib import admin
 from django.urls import include, path
+from rest_framework.authtoken.views import obtain_auth_token
+from rest_framework.routers import DefaultRouter
 
-# En la guia 02 agregas aqui el router de DRF, /api/token y /api/yo.
+from avisos.views import AvisoViewSet, CategoriaViewSet, yo
+
+router = DefaultRouter()
+router.register(r"avisos", AvisoViewSet)
+router.register(r"categorias", CategoriaViewSet)
+
 urlpatterns = [
     path("admin/", admin.site.urls),
-    # Entrar y salir de la API navegable de DRF, la que se ve en el navegador.
+    path("api/", include(router.urls)),
     path("api-auth/", include("rest_framework.urls")),
+    path("api/token", obtain_auth_token),
+    path("api/yo", yo),
 ]
