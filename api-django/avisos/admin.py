@@ -1,3 +1,9 @@
 from django.contrib import admin
 
-# Aqui registras tus modelos (guia 01, paso 4).
+from django.contrib import admin
+
+from .models import Aviso, Categoria
+
+admin.site.register(Categoria)
+admin.site.register(Aviso)
+

@@ -1,3 +1,10 @@
 from rest_framework import permissions
 
-# Aqui escribes EsAutorOAdmin (guia 02, paso 5).
+
+class EsAutorOAdmin(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        if request.user.is_staff:
+            return True
+        return obj.autor_id == request.user.id

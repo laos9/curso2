@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { BehaviorSubject, Observable, map, switchMap, tap } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 
 
@@ -30,8 +30,17 @@ export class SesionService {
     return this.sesionSubject.value?.token ?? null;
   }
 
+  // DRF autentica por username y solo devuelve { token }: el nombre y el rol
+  // se los pedimos a /api/yo con ese token recien sacado.
   entrar(email: string, password: string): Observable<Sesion> {
-    return this.http.post<Sesion>('/api/token', { email, password, dispositivo: 'angular' }).pipe(
+    return this.http.post<{ token: string }>('/api/token', { username: email, password }).pipe(
+      switchMap(({ token }) =>
+        this.http.get<{ nombre: string; rol: string }>('/api/yo', {
+          headers: new HttpHeaders({ Authorization: `Token ${token}` })
+        }).pipe(
+          map(yo => ({ token, usuario: yo.nombre, rol: yo.rol }))
+        )
+      ),
       tap(sesion => {
         sessionStorage.setItem(CLAVE, JSON.stringify(sesion));
         this.sesionSubject.next(sesion);

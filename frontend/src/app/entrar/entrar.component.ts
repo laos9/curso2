@@ -28,7 +28,7 @@ export class EntrarComponent {
       },
       error: (e: HttpErrorResponse) => {
         this.enviando = false;
-        this.error = e.error?.message ?? `Tu API respondió ${e.status}`;
+        this.error = e.error?.non_field_errors?.[0] ?? `Tu API respondió ${e.status}`;
       }
     });
   }
